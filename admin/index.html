@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Beni Koruyun — Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+  <!-- Firebase önce yüklenmeli -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAgl4mcKomLa8FL5nS3qcyRj0neBTLNNHU",
+      authDomain: "safenow-c7fc7.firebaseapp.com",
+      projectId: "safenow-c7fc7",
+      storageBucket: "safenow-c7fc7.firebasestorage.app",
+      messagingSenderId: "451637595298",
+      appId: "1:451637595298:web:c9aa6fde444e8eb5b49bfb"
+    };
+    firebase.initializeApp(firebaseConfig);
+  </script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0f1e;
+      --surface: #111827;
+      --border: #1e293b;
+      --accent: #ef4444;
+      --accent2: #f97316;
+      --text: #f1f5f9;
+      --muted: #64748b;
+      --success: #22c55e;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Sora', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    /* Animated background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 20%, rgba(239,68,68,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 80% at 80% 80%, rgba(249,115,22,0.06) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .grid-bg {
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+    }
+
+    .login-wrap {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 420px;
+      padding: 20px;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .logo-area {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .logo-icon {
+      width: 72px;
+      height: 72px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      margin-bottom: 16px;
+      box-shadow: 0 0 40px rgba(239,68,68,0.3);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 40px rgba(239,68,68,0.3); }
+      50%       { box-shadow: 0 0 60px rgba(239,68,68,0.5); }
+    }
+
+    .logo-area h1 {
+      font-family: 'Space Mono', monospace;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .logo-area h1 span { color: var(--accent); }
+
+    .logo-area p {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 6px;
+      font-family: 'Space Mono', monospace;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 36px 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+    }
+
+    .field {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 11px;
+      font-family: 'Space Mono', monospace;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      color: var(--text);
+      font-family: 'Sora', sans-serif;
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(239,68,68,0.1);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-family: 'Space Mono', monospace;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    .btn:hover { opacity: 0.9; }
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .error-msg {
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 13px;
+      color: #fca5a5;
+      margin-top: 16px;
+      display: none;
+    }
+
+    .footer-note {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 12px;
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="grid-bg"></div>
+
+  <div class="login-wrap">
+    <div class="logo-area">
+      <div class="logo-icon">🛡️</div>
+      <h1>Beni <span>Koruyun</span></h1>
+      <p>Admin Panel</p>
+    </div>
+
+    <div class="card">
+      <div class="field">
+        <label>E-Posta</label>
+        <input type="email" id="email" placeholder="admin@safenow.app" />
+      </div>
+      <div class="field">
+        <label>Şifre</label>
+        <input type="password" id="password" placeholder="••••••••" />
+      </div>
+      <button class="btn" id="loginBtn" onclick="login()">GİRİŞ YAP</button>
+      <div class="error-msg" id="errorMsg"></div>
+    </div>
+
+    <div class="footer-note">© 2025 SafeNow — Sadece yetkili erişim</div>
+  </div>
+
+  <script>
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // Admin e-posta listesi
+    const ADMIN_EMAILS = ['sezqin35@gmail.com'];
+
+    auth.onAuthStateChanged(user => {
+      if (user && ADMIN_EMAILS.includes(user.email)) {
+        window.location.href = 'dashboard.html';
+      }
+    });
+
+    async function login() {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const btn = document.getElementById('loginBtn');
+      const err = document.getElementById('errorMsg');
+
+      if (!email || !password) {
+        showError('E-posta ve şifre gerekli.');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'GİRİŞ YAPILIYOR...';
+      err.style.display = 'none';
+
+      try {
+        const result = await auth.signInWithEmailAndPassword(email, password);
+        if (!ADMIN_EMAILS.includes(result.user.email)) {
+          await auth.signOut();
+          showError('Bu hesabın admin yetkisi yok.');
+          btn.disabled = false;
+          btn.textContent = 'GİRİŞ YAP';
+          return;
+        }
+        window.location.href = 'dashboard.html';
+      } catch (e) {
+        showError('Hatalı e-posta veya şifre.');
+        btn.disabled = false;
+        btn.textContent = 'GİRİŞ YAP';
+      }
+    }
+
+    function showError(msg) {
+      const err = document.getElementById('errorMsg');
+      err.textContent = msg;
+      err.style.display = 'block';
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') login();
+    });
+  </script>
+</body>
+</html>

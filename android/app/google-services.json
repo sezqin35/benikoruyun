@@ -12,7 +12,20 @@
           "package_name": "com.safenow.app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "451637595298-vj7uf9hj810dgld1i20t71pfh8g0c4ni.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.safenow.app",
+            "certificate_hash": "f7737f1d0309e48b3df02277b5b408eb2d80bc9b"
+          }
+        },
+        {
+          "client_id": "451637595298-0b8kfvmfqcku48u8cs5f9rs0dhjj35u2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAXVcqzMIOqSKsam1XwmAQEzeFdS5Vgkac"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "451637595298-0b8kfvmfqcku48u8cs5f9rs0dhjj35u2.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "451637595298-ogokhh2hqgmcmk53lb1bpsah33c81mhv.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.safenow"
+              }
+            }
+          ]
         }
       }
     }

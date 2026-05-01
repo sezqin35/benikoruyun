@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Beni Koruyun — Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script>
+    firebase.initializeApp({
+      apiKey: "AIzaSyAgl4mcKomLa8FL5nS3qcyRj0neBTLNNHU",
+      authDomain: "safenow-c7fc7.firebaseapp.com",
+      projectId: "safenow-c7fc7",
+      storageBucket: "safenow-c7fc7.firebasestorage.app",
+      messagingSenderId: "451637595298",
+      appId: "1:451637595298:web:c9aa6fde444e8eb5b49bfb"
+    });
+  </script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0d1117;--sidebar:#161b22;--card:#1c2128;--border:#30363d;
+      --text:#e6edf3;--muted:#7d8590;--red:#f85149;--green:#3fb950;
+      --blue:#58a6ff;--yellow:#d29922;--purple:#bc8cff;--orange:#f0883e;
+    }
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;font-size:14px}
+
+    /* SIDEBAR */
+    .sidebar{width:220px;background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:50}
+    .s-logo{padding:18px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+    .s-logo .ico{width:32px;height:32px;background:var(--red);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+    .s-logo .app-name{font-weight:700;font-size:14px}
+    .s-logo .app-sub{font-size:11px;color:var(--muted)}
+    nav{flex:1;padding:10px 8px;overflow-y:auto}
+    .nav-lbl{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:8px 8px 4px}
+    .nav-btn{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;cursor:pointer;color:var(--muted);font-size:13px;font-weight:500;border:none;background:none;width:100%;text-align:left;transition:all .15s;margin-bottom:1px}
+    .nav-btn:hover{background:var(--card);color:var(--text)}
+    .nav-btn.active{background:rgba(88,166,255,.12);color:var(--blue)}
+    .s-foot{padding:12px;border-top:1px solid var(--border)}
+    .user-row{display:flex;align-items:center;gap:8px;padding:8px;background:var(--card);border-radius:8px}
+    .user-av{width:28px;height:28px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+    .user-name{font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+    .user-role{font-size:10px;color:var(--muted)}
+    .logout{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:2px}
+    .logout:hover{color:var(--red)}
+
+    /* MAIN */
+    .main{margin-left:220px;flex:1;display:flex;flex-direction:column}
+    .topbar{padding:13px 24px;border-bottom:1px solid var(--border);background:var(--sidebar);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+    .topbar h1{font-size:15px;font-weight:600}
+    .topbar-right{display:flex;align-items:center;gap:10px}
+    .clock{font-size:12px;color:var(--muted);background:var(--card);padding:4px 10px;border-radius:20px;border:1px solid var(--border)}
+    .online-pill{font-size:12px;font-weight:600;background:rgba(63,185,80,.12);color:var(--green);padding:4px 10px;border-radius:20px;border:1px solid rgba(63,185,80,.3)}
+    .sos-pill{font-size:12px;font-weight:600;background:rgba(248,81,73,.15);color:var(--red);padding:4px 10px;border-radius:20px;border:1px solid rgba(248,81,73,.4);animation:blink 1.2s ease-in-out infinite;display:none}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+    .content{padding:24px}
+
+    /* SECTIONS */
+    .section{display:none}.section.active{display:block}
+    .sec-lbl{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin:0 0 10px}
+
+    /* STAT GRID */
+    .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+    .stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 18px;cursor:pointer;transition:border-color .15s,transform .1s}
+    .stat-card:hover{border-color:var(--blue);transform:translateY(-1px)}
+    .stat-lbl{font-size:12px;color:var(--muted);font-weight:500;margin-bottom:8px}
+    .stat-val{font-size:30px;font-weight:700;line-height:1}
+    .c-red{color:var(--red)}.c-green{color:var(--green)}.c-blue{color:var(--blue)}
+    .c-yellow{color:var(--yellow)}.c-purple{color:var(--purple)}.c-orange{color:var(--orange)}
+
+    /* SOS ALERT */
+    .sos-alert{background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.4);border-radius:10px;padding:16px 20px;margin-bottom:20px;display:none}
+    .sos-alert.visible{display:block}
+    .sos-alert-title{color:var(--red);font-weight:700;font-size:14px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+    .sos-alert table{width:100%;border-collapse:collapse}
+    .sos-alert td{padding:6px 0;font-size:13px;border-bottom:1px solid rgba(248,81,73,.15)}
+    .sos-alert tr:last-child td{border-bottom:none}
+
+    /* SYSTEM HEALTH */
+    .health-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+    .health-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px}
+    .health-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+    .h-ok{background:var(--green)}.h-warn{background:var(--yellow)}.h-err{background:var(--red)}
+    .health-info .name{font-size:13px;font-weight:600}
+    .health-info .status{font-size:11px;color:var(--muted);margin-top:2px}
+
+    /* TABLE */
+    .tcard{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:24px}
+    .tcard-top{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .tcard-top h3{font-size:14px;font-weight:600}
+    .srch{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:7px 12px;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;width:200px}
+    .srch:focus{border-color:var(--blue)}
+    table{width:100%;border-collapse:collapse}
+    th{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:10px 18px;text-align:left;background:var(--bg);border-bottom:1px solid var(--border)}
+    td{padding:11px 18px;font-size:13px;border-bottom:1px solid rgba(48,54,61,.5);vertical-align:middle}
+    tr:last-child td{border-bottom:none}
+    tr:hover td{background:rgba(255,255,255,.015)}
+
+    /* BADGE */
+    .badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+    .b-prem{background:rgba(210,153,34,.15);color:var(--yellow);border:1px solid rgba(210,153,34,.3)}
+    .b-free{background:rgba(125,133,144,.08);color:var(--muted);border:1px solid var(--border)}
+    .b-used{background:rgba(63,185,80,.12);color:var(--green);border:1px solid rgba(63,185,80,.3)}
+    .b-online{background:rgba(63,185,80,.12);color:var(--green);border:1px solid rgba(63,185,80,.3)}
+    .b-offline{background:rgba(125,133,144,.08);color:var(--muted);border:1px solid var(--border)}
+    .perm-ok{color:var(--green);font-size:13px}.perm-no{color:var(--red);font-size:13px}
+
+    /* BUTTONS */
+    .btn{padding:5px 11px;border-radius:6px;border:none;font-size:12px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:opacity .15s}
+    .btn:hover{opacity:.8}
+    .b-yellow{background:rgba(210,153,34,.12);color:var(--yellow);border:1px solid rgba(210,153,34,.3)}
+    .b-gray{background:rgba(125,133,144,.1);color:var(--muted);border:1px solid var(--border)}
+    .b-red{background:rgba(248,81,73,.1);color:var(--red);border:1px solid rgba(248,81,73,.3)}
+    .b-blue{background:rgba(88,166,255,.1);color:var(--blue);border:1px solid rgba(88,166,255,.3)}
+    .b-prim{background:var(--blue);color:#0d1117;border:none;padding:8px 16px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer}
+    .b-sec{background:var(--card);color:var(--text);border:1px solid var(--border);padding:8px 16px;border-radius:6px;font-size:13px;cursor:pointer}
+    .toolbar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+    .code{font-family:monospace;color:var(--green);font-size:13px}
+
+    /* CHARTS */
+    .chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+    .chart-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px}
+    .chart-card h3{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:14px}
+    .bar-chart{display:flex;align-items:flex-end;gap:6px;height:110px}
+    .bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end}
+    .bar{width:100%;background:var(--red);border-radius:4px 4px 0 0;min-height:3px}
+    .bar.bl{background:var(--blue)}.bar-lbl{font-size:9px;color:var(--muted)}
+    .donut-wrap{display:flex;align-items:center;gap:20px}
+    .donut{width:100px;height:100px;flex-shrink:0}
+    .legend{display:flex;flex-direction:column;gap:8px}
+    .legend-row{display:flex;align-items:center;gap:8px;font-size:13px}
+    .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+    /* LOG */
+    .log-row{display:flex;align-items:center;gap:12px;padding:10px 18px;border-bottom:1px solid rgba(48,54,61,.5);font-size:13px}
+    .log-row:last-child{border-bottom:none}
+    .log-icon{font-size:16px;width:24px;text-align:center}
+    .log-action{font-weight:500;flex:1}
+    .log-user{color:var(--muted);font-size:12px}
+    .log-time{color:var(--muted);font-size:11px;white-space:nowrap}
+
+    /* MODAL */
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;z-index:100;padding:20px}
+    .overlay.open{display:flex}
+    .modal{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;width:360px}
+    .modal h3{font-size:15px;font-weight:600;margin-bottom:18px}
+    .field{margin-bottom:12px}
+    .field label{display:block;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+    .field input,.field textarea,.field select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:9px 12px;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none}
+    .field input:focus,.field textarea:focus,.field select:focus{border-color:var(--blue)}
+    .field textarea{resize:vertical;min-height:80px}
+    .field select option{background:var(--card)}
+    .modal-btns{display:flex;gap:8px;margin-top:16px}
+    .modal-btns .b-prim,.modal-btns .b-sec{flex:1;text-align:center}
+
+    /* DETAIL MODAL */
+    .detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:200;padding:20px}
+    .detail-overlay.open{display:flex}
+    .detail-modal{background:var(--card);border:1px solid var(--border);border-radius:12px;width:100%;max-width:750px;max-height:85vh;display:flex;flex-direction:column}
+    .detail-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+    .detail-header h3{font-size:15px;font-weight:600;flex:1}
+    .detail-srch{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:7px 12px;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;width:200px}
+    .detail-srch:focus{border-color:var(--blue)}
+    .detail-close{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:2px 6px;border-radius:4px}
+    .detail-close:hover{background:var(--border);color:var(--text)}
+    .detail-body{overflow-y:auto;flex:1}
+    .detail-body table{width:100%;border-collapse:collapse}
+    .detail-body th{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:10px 20px;text-align:left;background:var(--bg);border-bottom:1px solid var(--border);position:sticky;top:0}
+    .detail-body td{padding:11px 20px;font-size:13px;border-bottom:1px solid rgba(48,54,61,.5)}
+    .detail-body tr:last-child td{border-bottom:none}
+    .detail-body tr:hover td{background:rgba(255,255,255,.015)}
+    .detail-empty{text-align:center;padding:40px;color:var(--muted);font-size:13px}
+
+    /* TOAST */
+    .toast{position:fixed;bottom:20px;right:20px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:11px 16px;font-size:13px;display:none;z-index:999}
+    .toast.show{display:block}
+    .toast.ok{border-color:var(--green);color:var(--green)}
+    .toast.err{border-color:var(--red);color:var(--red)}
+    .loading{text-align:center;padding:30px;color:var(--muted);font-size:13px}
+  </style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="s-logo">
+    <div class="ico">🛡️</div>
+    <div>
+      <div class="app-name">Beni Koruyun</div>
+      <div class="app-sub">Admin Panel</div>
+    </div>
+  </div>
+  <nav>
+    <div class="nav-lbl">Ana</div>
+    <button class="nav-btn active" onclick="go('dashboard',this)">📊 Dashboard</button>
+    <div class="nav-lbl">Yönetim</div>
+    <button class="nav-btn" onclick="go('users',this)">👥 Kullanıcılar</button>
+    <button class="nav-btn" onclick="go('promo',this)">🎟️ Promo Kodlar</button>
+    <div class="nav-lbl">İzleme</div>
+    <button class="nav-btn" onclick="go('sos',this)">🚨 SOS Alarmları</button>
+    <button class="nav-btn" onclick="go('logs',this)">📋 Log Kayıtları</button>
+    <div class="nav-lbl">Araçlar</div>
+    <button class="nav-btn" onclick="go('notify',this)">📣 Bildirim Gönder</button>
+    <button class="nav-btn" onclick="go('stats',this)">📈 İstatistikler</button>
+  </nav>
+  <div class="s-foot">
+    <div class="user-row">
+      <div class="user-av">👤</div>
+      <div style="flex:1;overflow:hidden">
+        <div class="user-name" id="adminEmail">Admin</div>
+        <div class="user-role">Super Admin</div>
+      </div>
+      <button class="logout" onclick="doLogout()">⎋</button>
+    </div>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <h1 id="pageTitle">Dashboard</h1>
+    <div class="topbar-right">
+      <span class="sos-pill" id="sosPill">🚨 AKTİF SOS</span>
+      <span class="online-pill" id="onlinePill">● 0 Çevrimiçi</span>
+      <span class="clock" id="clock">--:--:--</span>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="section active" id="section-dashboard">
+
+      <!-- SOS ÖZET KARTI -->
+      <div class="sos-alert" id="sosAlert" onclick="go('sos', document.querySelector('.nav-btn[onclick*=sos]'))" style="cursor:pointer">
+        <div class="sos-alert-title">🚨 Aktif SOS Alarmları — <span id="sosCount">0</span> alarm var. Detaylar için tıkla →</div>
+      </div>
+
+      <!-- SİSTEM SAĞLIĞI -->
+      <p class="sec-lbl">Sistem Sağlığı</p>
+      <div class="health-grid" id="healthGrid">
+        <div class="health-card"><div class="health-dot h-warn" id="h-firebase"></div><div class="health-info"><div class="name">Firebase</div><div class="status" id="hs-firebase">Kontrol ediliyor…</div></div></div>
+        <div class="health-card"><div class="health-dot h-warn" id="h-firestore"></div><div class="health-info"><div class="name">Firestore</div><div class="status" id="hs-firestore">Kontrol ediliyor…</div></div></div>
+        <div class="health-card"><div class="health-dot h-warn" id="h-maps"></div><div class="health-info"><div class="name">OpenStreetMap</div><div class="status" id="hs-maps">Kontrol ediliyor…</div></div></div>
+        <div class="health-card"><div class="health-dot h-warn" id="h-fcm"></div><div class="health-info"><div class="name">FCM Bildirim</div><div class="status" id="hs-fcm">Kontrol ediliyor…</div></div></div>
+      </div>
+
+      <!-- GENEL BAKIM -->
+      <p class="sec-lbl">Genel Bakış</p>
+      <div class="stat-grid">
+        <div class="stat-card" onclick="showDetail('all-users')"><div class="stat-lbl">Toplam Kullanıcı</div><div class="stat-val c-blue" id="s-total">—</div></div>
+        <div class="stat-card" onclick="showDetail('premium-users')"><div class="stat-lbl">Premium Kullanıcı</div><div class="stat-val c-yellow" id="s-premium">—</div></div>
+        <div class="stat-card" onclick="showDetail('online-users')"><div class="stat-lbl">Şu An Çevrimiçi</div><div class="stat-val c-green" id="s-online">—</div></div>
+        <div class="stat-card" onclick="showDetail('promo-used')"><div class="stat-lbl">Promo Kod Kullanılan</div><div class="stat-val c-purple" id="s-promo">—</div></div>
+      </div>
+
+      <!-- BUTON İSTATİSTİKLERİ -->
+      <p class="sec-lbl">Buton İstatistikleri (Tüm Zamanlar)</p>
+      <div class="stat-grid" style="margin-bottom:28px">
+        <div class="stat-card" onclick="showDetail('btn-panic')"><div class="stat-lbl">🚨 Acil Yardım</div><div class="stat-val c-red" id="s-panic">—</div></div>
+        <div class="stat-card" onclick="showDetail('btn-safe')"><div class="stat-lbl">✅ Güvendeyim</div><div class="stat-val c-green" id="s-safe">—</div></div>
+        <div class="stat-card" onclick="showDetail('btn-audio')"><div class="stat-lbl">🎙️ Ses Kaydı</div><div class="stat-val c-purple" id="s-audio">—</div></div>
+        <div class="stat-card" onclick="showDetail('today-panic')"><div class="stat-lbl">📅 Bugünkü Acil</div><div class="stat-val c-orange" id="s-today">—</div></div>
+      </div>
+
+      <!-- SON KULLANICILAR -->
+      <p class="sec-lbl">Son Kayıt Olan Kullanıcılar</p>
+      <div class="tcard">
+        <table>
+          <thead><tr><th>İsim</th><th>E-Posta</th><th>Plan</th><th>Durum</th><th>Kayıt Tarihi</th></tr></thead>
+          <tbody id="recent-tbody"><tr><td colspan="5" class="loading">Yükleniyor…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SOS ALARMLARI -->
+    <div class="section" id="section-sos">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <p class="sec-lbl" style="margin:0">Aktif SOS Alarmları (Son 30 Dakika)</p>
+        <button class="b-sec" onclick="loadSOS()" style="font-size:12px;padding:6px 12px">↺ Yenile</button>
+      </div>
+      <div class="tcard">
+        <table>
+          <thead><tr><th>Kullanıcı</th><th>Saat</th><th>Konum</th><th>Tip</th><th>Harita</th></tr></thead>
+          <tbody id="sos-tbody"><tr><td colspan="5" class="loading">Yükleniyor…</td></tr></tbody>
+        </table>
+      </div>
+
+      <p class="sec-lbl" style="margin-top:8px">Tüm Zamanların SOS Geçmişi</p>
+      <div class="tcard">
+        <div class="tcard-top">
+          <h3>SOS Geçmişi</h3>
+          <input class="srch" id="sosSrch" type="text" placeholder="Kullanıcı ara…" oninput="filterSOS()"/>
+        </div>
+        <table>
+          <thead><tr><th>Kullanıcı</th><th>Tip</th><th>Tarih & Saat</th><th>Konum</th><th>Harita</th></tr></thead>
+          <tbody id="sos-history-tbody"><tr><td colspan="5" class="loading">Yükleniyor…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- KULLANICILAR -->
+    <div class="section" id="section-users">
+      <div class="tcard">
+        <div class="tcard-top">
+          <h3>Tüm Kullanıcılar</h3>
+          <input class="srch" id="userSrch" type="text" placeholder="İsim veya e-posta ara…" oninput="filterUsers()"/>
+        </div>
+        <table>
+          <thead><tr><th>İsim</th><th>E-Posta</th><th>Kan Grubu</th><th>Durum</th><th>İzinler</th><th>Plan</th><th>İşlem</th></tr></thead>
+          <tbody id="users-tbody"><tr><td colspan="7" class="loading">Yükleniyor…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PROMO -->
+    <div class="section" id="section-promo">
+      <div class="toolbar">
+        <button class="b-prim" onclick="openPromo()">+ Yeni Kod Üret</button>
+        <button class="b-sec" onclick="loadPromo()">↺ Yenile</button>
+      </div>
+      <div class="tcard">
+        <div class="tcard-top">
+          <h3>Promosyon Kodları</h3>
+          <input class="srch" id="promoSrch" type="text" placeholder="Kod ara…" oninput="filterPromo()"/>
+        </div>
+        <table>
+          <thead><tr><th>Kod</th><th>Durum</th><th>Kullanan</th><th>Tarih</th><th>İşlem</th></tr></thead>
+          <tbody id="promo-tbody"><tr><td colspan="5" class="loading">Yükleniyor…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- LOG KAYITLARI -->
+    <div class="section" id="section-logs">
+      <div class="tcard">
+        <div class="tcard-top">
+          <h3>Log Kayıtları</h3>
+          <div style="display:flex;gap:8px;align-items:center">
+            <select id="logFilter" onchange="filterLogs()" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:7px 10px;color:var(--text);font-size:13px;outline:none">
+              <option value="">Tümü</option>
+              <option value="app_open">Uygulama Açılışı</option>
+              <option value="sos_pressed">SOS Basıldı</option>
+              <option value="safe_pressed">Güvendeyim Basıldı</option>
+            </select>
+            <input class="srch" id="logSrch" type="text" placeholder="Kullanıcı ara…" oninput="filterLogs()"/>
+          </div>
+        </div>
+        <div id="log-list"><div class="loading">Yükleniyor…</div></div>
+      </div>
+    </div>
+
+    <!-- BİLDİRİM GÖNDER -->
+    <div class="section" id="section-notify">
+      <div class="tcard" style="max-width:560px">
+        <div class="tcard-top"><h3>📣 Push Bildirim Gönder</h3></div>
+        <div style="padding:20px;display:flex;flex-direction:column;gap:14px">
+          <div class="field">
+            <label>Hedef Kitle</label>
+            <select id="notifTarget">
+              <option value="all">Tüm Kullanıcılar</option>
+              <option value="premium">Sadece Premium</option>
+              <option value="free">Sadece Ücretsiz</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Başlık</label>
+            <input type="text" id="notifTitle" placeholder="Bildirim başlığı…"/>
+          </div>
+          <div class="field">
+            <label>Mesaj</label>
+            <textarea id="notifBody" placeholder="Bildirim mesajı…"></textarea>
+          </div>
+          <button class="b-prim" style="align-self:flex-start" onclick="sendNotification()">📤 Gönder</button>
+          <div id="notifResult" style="font-size:13px;color:var(--muted)"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- İSTATİSTİKLER -->
+    <div class="section" id="section-stats">
+      <div class="chart-grid">
+        <div class="chart-card">
+          <h3>Son 7 Günlük Acil Çağrı</h3>
+          <div class="bar-chart" id="chart-panic"><div class="loading">Yükleniyor…</div></div>
+        </div>
+        <div class="chart-card">
+          <h3>Premium / Ücretsiz Dağılımı</h3>
+          <div class="donut-wrap" id="chart-donut"><div class="loading">Yükleniyor…</div></div>
+        </div>
+      </div>
+      <div class="chart-card">
+        <h3>Son 7 Günlük Yeni Kullanıcı</h3>
+        <div class="bar-chart" id="chart-users"><div class="loading">Yükleniyor…</div></div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- DETAIL MODAL -->
+<div class="detail-overlay" id="detailOverlay" onclick="closeDetail(event)">
+  <div class="detail-modal">
+    <div class="detail-header">
+      <h3 id="detailTitle">Detay</h3>
+      <input class="detail-srch" id="detailSrch" placeholder="🔍 Ara…" oninput="filterDetail()"/>
+      <button class="detail-close" onclick="closeDetail()">✕</button>
+    </div>
+    <div class="detail-body" id="detailBody"><div class="loading">Yükleniyor…</div></div>
+  </div>
+</div>
+
+<!-- PROMO MODAL -->
+<div class="overlay" id="promoOverlay">
+  <div class="modal">
+    <h3>Yeni Promo Kod Üret</h3>
+    <div class="field"><label>Adet</label><input type="number" id="promoCount" value="1" min="1" max="100"/></div>
+    <div class="field"><label>Prefix</label><input type="text" id="promoPrefix" placeholder="SAFE" maxlength="6"/></div>
+    <div class="modal-btns">
+      <button class="b-prim" onclick="genPromo()">Üret</button>
+      <button class="b-sec" onclick="closePromo()">İptal</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const auth = firebase.auth();
+const db   = firebase.firestore();
+const ADMIN = ['sezqin35@gmail.com'];
+
+auth.onAuthStateChanged(u => {
+  if (!u || !ADMIN.includes(u.email)) { window.location.href='index.html'; return; }
+  document.getElementById('adminEmail').textContent = u.email;
+  loadDashboard();
+  loadUsers();
+  loadPromo();
+  loadLogs();
+  loadStats();
+  checkHealth();
+  startLiveMonitor();
+});
+
+setInterval(() => {
+  document.getElementById('clock').textContent = new Date().toLocaleTimeString('tr-TR');
+}, 1000);
+
+function go(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(n => n.classList.remove('active'));
+  document.getElementById('section-'+id).classList.add('active');
+  if (btn) btn.classList.add('active');
+  const t = {dashboard:'Dashboard',sos:'SOS Alarmları',users:'Kullanıcılar',promo:'Promo Kodlar',logs:'Log Kayıtları',notify:'Bildirim Gönder',stats:'İstatistikler'};
+  document.getElementById('pageTitle').textContent = t[id];
+  if (id === 'sos') loadSOS();
+}
+
+async function doLogout() { await auth.signOut(); window.location.href='index.html'; }
+
+// ── SİSTEM SAĞLIĞI ──
+async function checkHealth() {
+  // Firebase Auth
+  try {
+    await auth.currentUser?.getIdToken(true);
+    setHealth('firebase','ok','Bağlı');
+  } catch { setHealth('firebase','err','Bağlantı hatası'); }
+
+  // Firestore
+  try {
+    await db.collection('users').limit(1).get();
+    setHealth('firestore','ok','Bağlı');
+  } catch { setHealth('firestore','err','Bağlantı hatası'); }
+
+  // OpenStreetMap
+  try {
+    const r = await fetch('https://tile.openstreetmap.org/0/0/0.png',{mode:'no-cors'});
+    setHealth('maps','ok','Çevrimiçi');
+  } catch { setHealth('maps','warn','Kontrol edilemiyor'); }
+
+  // FCM (notifications koleksiyonu erişimi)
+  try {
+    await db.collection('notifications').limit(1).get();
+    setHealth('fcm','ok','Aktif');
+  } catch { setHealth('fcm','warn','Kontrol edilemiyor'); }
+}
+
+function setHealth(id, status, text) {
+  const dot = document.getElementById('h-'+id);
+  const lbl = document.getElementById('hs-'+id);
+  if (!dot || !lbl) return;
+  dot.className = 'health-dot ' + (status==='ok'?'h-ok':status==='warn'?'h-warn':'h-err');
+  lbl.textContent = text;
+}
+
+// ── CANLI MONİTÖR ──
+function startLiveMonitor() {
+  // Çevrimiçi kullanıcılar
+  db.collection('users').where('isOnline','==',true).onSnapshot(snap => {
+    const count = snap.size;
+    document.getElementById('onlinePill').textContent = '● ' + count + ' Çevrimiçi';
+    document.getElementById('s-online').textContent = count;
+  });
+
+  // Aktif SOS alarmları (son 30 dakika) — sadece sayı göster dashboard'da
+  const cutoff = new Date(Date.now() - 30 * 60 * 1000);
+  db.collection('panic_events')
+    .where('type','==','panic')
+    .onSnapshot(snap => {
+      const active = [];
+      snap.forEach(doc => {
+        const d = doc.data();
+        const ts = d.timestamp?.toDate?.() || new Date(0);
+        if (ts >= cutoff && !d.audioUrl) active.push(d);
+      });
+
+      const pill  = document.getElementById('sosPill');
+      const alert = document.getElementById('sosAlert');
+      const count = document.getElementById('sosCount');
+
+      if (active.length > 0) {
+        pill.style.display  = 'inline';
+        alert.classList.add('visible');
+        if (count) count.textContent = active.length;
+      } else {
+        pill.style.display = 'none';
+        alert.classList.remove('visible');
+      }
+    });
+}
+
+// ── SOS ALARMLARI ──
+let allSOS = [];
+
+async function loadSOS() {
+  const snap = await db.collection('panic_events').get();
+  allSOS = [];
+  snap.forEach(d => allSOS.push({id:d.id,...d.data()}));
+  allSOS.sort((a,b)=>(b.timestamp?.toDate?.()??new Date(0))-(a.timestamp?.toDate?.()??new Date(0)));
+
+  const cutoff = new Date(Date.now() - 30 * 60 * 1000);
+
+  // Aktif SOS (son 30 dk)
+  const active = allSOS.filter(d => {
+    const ts = d.timestamp?.toDate?.();
+    return ts && ts >= cutoff && !d.audioUrl && d.type !== 'safe';
+  });
+
+  const activeTbody = document.getElementById('sos-tbody');
+  if (!active.length) {
+    activeTbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--green)">✅ Şu an aktif SOS alarmı yok</td></tr>';
+  } else {
+    activeTbody.innerHTML = active.map(d => {
+      const ts = d.timestamp?.toDate?.();
+      const tip = d.audioUrl ? '🎙️ Ses' : d.type==='safe' ? '✅ Güvendeyim' : '🚨 Acil';
+      const lat = d.latitude?.toFixed(4);
+      const lng = d.longitude?.toFixed(4);
+      const mapLink = lat ? `<a href="https://www.google.com/maps?q=${lat},${lng}" target="_blank" style="color:var(--blue);font-size:12px">📍 Haritada Gör</a>` : '—';
+      return `<tr style="background:rgba(248,81,73,0.05)">
+        <td><strong>${d.userName||'—'}</strong></td>
+        <td>${ts?ts.toLocaleTimeString('tr-TR'):'—'}</td>
+        <td>${lat?`${lat}, ${lng}`:'—'}</td>
+        <td>${tip}</td>
+        <td>${mapLink}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // Tüm geçmiş
+  renderSOS(allSOS);
+}
+
+function renderSOS(list) {
+  const tbody = document.getElementById('sos-history-tbody');
+  if (!list.length) { tbody.innerHTML='<tr><td colspan="5" class="loading">Kayıt bulunamadı</td></tr>'; return; }
+  tbody.innerHTML = list.map(d => {
+    const ts = d.timestamp?.toDate?.();
+    const tip = d.audioUrl ? '🎙️ Ses Kaydı' : d.type==='safe' ? '✅ Güvendeyim' : '🚨 Acil Yardım';
+    const lat = d.latitude?.toFixed(4);
+    const lng = d.longitude?.toFixed(4);
+    const mapLink = lat ? `<a href="https://www.google.com/maps?q=${lat},${lng}" target="_blank" style="color:var(--blue);font-size:12px">📍 Gör</a>` : '—';
+    return `<tr>
+      <td>${d.userName||'—'}</td>
+      <td>${tip}</td>
+      <td>${ts?ts.toLocaleString('tr-TR'):'—'}</td>
+      <td>${lat?`${lat}, ${lng}`:'—'}</td>
+      <td>${mapLink}</td>
+    </tr>`;
+  }).join('');
+}
+
+function filterSOS() {
+  const q = document.getElementById('sosSrch').value.toLowerCase();
+  renderSOS(allSOS.filter(d => (d.userName||'').toLowerCase().includes(q)));
+}
+
+// ── DASHBOARD ──
+let allUsers=[], allPromo=[], allLogs=[];
+
+async function loadDashboard() {
+  const [usersSnap, promoSnap, panicSnap] = await Promise.all([
+    db.collection('users').get(),
+    db.collection('promo_codes').get(),
+    db.collection('panic_events').get()
+  ]);
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  let total=0, premium=0, todayCount=0, btnPanic=0, btnSafe=0, btnAudio=0;
+
+  usersSnap.forEach(d => { total++; if(d.data().isPremium) premium++; });
+
+  panicSnap.forEach(doc => {
+    const d = doc.data();
+    const ts = d.timestamp?.toDate?.() || (d.timestamp ? new Date(d.timestamp) : null);
+    if (ts && ts >= today) todayCount++;
+    if (d.audioUrl) btnAudio++;
+    else if (d.type==='safe'||d.type==='guvendeyim') btnSafe++;
+    else btnPanic++;
+  });
+
+  let promoUsed=0;
+  promoSnap.forEach(d => { if(d.data().isUsed) promoUsed++; });
+
+  document.getElementById('s-total').textContent   = total;
+  document.getElementById('s-premium').textContent = premium;
+  document.getElementById('s-promo').textContent   = promoUsed+'/'+promoSnap.size;
+  document.getElementById('s-panic').textContent   = btnPanic;
+  document.getElementById('s-safe').textContent    = btnSafe;
+  document.getElementById('s-audio').textContent   = btnAudio;
+  document.getElementById('s-today').textContent   = todayCount;
+
+  const arr=[];
+  usersSnap.forEach(d => arr.push(d.data()));
+  arr.sort((a,b)=>(b.createdAt?.toDate?.()??new Date(0))-(a.createdAt?.toDate?.()??new Date(0)));
+
+  document.getElementById('recent-tbody').innerHTML = arr.slice(0,5).map(u => {
+    const date = u.createdAt?.toDate?.()?.toLocaleDateString('tr-TR') || '—';
+    const online = u.isOnline
+      ? '<span class="badge b-online">● Çevrimiçi</span>'
+      : '<span class="badge b-offline">Çevrimdışı</span>';
+    return `<tr>
+      <td>${u.name||u.isim||'—'}</td>
+      <td>${u.email||u['e-posta']||'—'}</td>
+      <td><span class="badge ${u.isPremium?'b-prem':'b-free'}">${u.isPremium?'⭐ Premium':'Ücretsiz'}</span></td>
+      <td>${online}</td>
+      <td>${date}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="5" class="loading">Veri yok</td></tr>';
+}
+
+// ── USERS ──
+async function loadUsers() {
+  const snap = await db.collection('users').get();
+  allUsers=[];
+  snap.forEach(d => allUsers.push({id:d.id,...d.data()}));
+  allUsers.sort((a,b)=>(b.createdAt?.toDate?.()??new Date(0))-(a.createdAt?.toDate?.()??new Date(0)));
+  renderUsers(allUsers);
+}
+
+function renderUsers(list) {
+  const tbody=document.getElementById('users-tbody');
+  if (!list.length) { tbody.innerHTML='<tr><td colspan="7" class="loading">Kullanıcı bulunamadı</td></tr>'; return; }
+  tbody.innerHTML=list.map(u=>{
+    const perms = u.permissions || {};
+    const permIcons = [
+      `<span title="Mikrofon" class="${perms.microphone?'perm-ok':'perm-no'}">${perms.microphone?'✅':'❌'}</span>`,
+      `<span title="Konum" class="${perms.location?'perm-ok':'perm-no'}">${perms.location?'📍':'❌'}</span>`,
+      `<span title="Arka Plan Konum" class="${perms.locationBg?'perm-ok':'perm-no'}">${perms.locationBg?'🔄':'❌'}</span>`,
+      `<span title="Bildirim" class="${perms.notification?'perm-ok':'perm-no'}">${perms.notification?'🔔':'❌'}</span>`,
+    ].join(' ');
+    const online = u.isOnline
+      ? '<span class="badge b-online">● Çevrimiçi</span>'
+      : '<span class="badge b-offline">Çevrimdışı</span>';
+    const pb=u.isPremium
+      ?`<button class="btn b-gray" onclick="setPremium('${u.id}',false)">Ücretsiz Yap</button>`
+      :`<button class="btn b-yellow" onclick="setPremium('${u.id}',true)">⭐ Premium Ver</button>`;
+    return `<tr>
+      <td style="cursor:pointer;color:var(--blue)" onclick="showUserDetail('${u.id}')">${u.name||u.isim||'—'}</td>
+      <td>${u.email||u['e-posta']||'—'}</td>
+      <td>${u.bloodType||u['kan grubu']||'—'}</td>
+      <td>${online}</td>
+      <td>${permIcons}</td>
+      <td><span class="badge ${u.isPremium?'b-prem':'b-free'}">${u.isPremium?'⭐ Premium':'Ücretsiz'}</span></td>
+      <td style="display:flex;gap:6px;flex-wrap:wrap">${pb}<button class="btn b-red" onclick="delUser('${u.id}')">Sil</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function filterUsers() {
+  const q=document.getElementById('userSrch').value.toLowerCase();
+  renderUsers(allUsers.filter(u=>(u.name||u.isim||'').toLowerCase().includes(q)||(u.email||u['e-posta']||'').toLowerCase().includes(q)));
+}
+
+async function setPremium(uid,val) {
+  await db.collection('users').doc(uid).update({isPremium:val});
+  toast(val?'⭐ Premium verildi':'Ücretsiz yapıldı','ok');
+  loadUsers(); loadDashboard();
+}
+
+async function delUser(uid) {
+  if (!confirm('Bu kullanıcıyı silmek istediğine emin misin?')) return;
+  await db.collection('users').doc(uid).delete();
+  toast('Kullanıcı silindi','err');
+  loadUsers(); loadDashboard();
+}
+
+// Kullanıcı detayı (kan grubu + acil kişiler)
+async function showUserDetail(uid) {
+  document.getElementById('detailTitle').textContent = '👤 Kullanıcı Profili';
+  document.getElementById('detailSrch').value = '';
+  document.getElementById('detailOverlay').classList.add('open');
+  document.getElementById('detailBody').innerHTML = '<div class="loading">Yükleniyor…</div>';
+
+  const [userDoc, contactsSnap] = await Promise.all([
+    db.collection('users').doc(uid).get(),
+    db.collection('users').doc(uid).collection('contacts').get()
+  ]);
+
+  const u = userDoc.data() || {};
+  const perms = u.permissions || {};
+  const lastSeen = u.lastSeen?.toDate?.()?.toLocaleString('tr-TR') || '—';
+
+  let contactsHtml = '';
+  if (contactsSnap.empty) {
+    contactsHtml = '<p style="color:var(--muted);font-size:13px;margin-top:8px">Acil kişi eklenmemiş</p>';
+  } else {
+    contactsHtml = '<table style="margin-top:8px"><thead><tr><th>İsim</th><th>Telefon</th></tr></thead><tbody>';
+    contactsSnap.forEach(doc => {
+      const c = doc.data();
+      contactsHtml += `<tr><td>${c.name||'—'}</td><td>${c.phone||c.telefon||'—'}</td></tr>`;
+    });
+    contactsHtml += '</tbody></table>';
+  }
+
+  document.getElementById('detailBody').innerHTML = `
+    <div style="padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <div>
+        <p style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;font-weight:600">Profil Bilgileri</p>
+        <table style="width:100%">
+          <tr><td style="color:var(--muted);padding:6px 0;font-size:13px">İsim</td><td style="font-size:13px;padding:6px 0">${u.name||u.isim||'—'}</td></tr>
+          <tr><td style="color:var(--muted);padding:6px 0;font-size:13px">E-Posta</td><td style="font-size:13px;padding:6px 0">${u.email||u['e-posta']||'—'}</td></tr>
+          <tr><td style="color:var(--muted);padding:6px 0;font-size:13px">Telefon</td><td style="font-size:13px;padding:6px 0">${u.phone||u.telefon||'—'}</td></tr>
+          <tr><td style="color:var(--muted);padding:6px 0;font-size:13px">Kan Grubu</td><td style="font-size:13px;padding:6px 0;font-weight:600;color:var(--red)">${u.bloodType||u['kan grubu']||'—'}</td></tr>
+          <tr><td style="color:var(--muted);padding:6px 0;font-size:13px">Plan</td><td style="font-size:13px;padding:6px 0"><span class="badge ${u.isPremium?'b-prem':'b-free'}">${u.isPremium?'⭐ Premium':'Ücretsiz'}</span></td></tr>
+          <tr><td style="color:var(--muted);padding:6px 0;font-size:13px">Son Görülme</td><td style="font-size:13px;padding:6px 0">${lastSeen}</td></tr>
+        </table>
+      </div>
+      <div>
+        <p style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;font-weight:600">İzin Durumu</p>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          ${[
+            {label:'Mikrofon',key:'microphone',icon:'🎤'},
+            {label:'Konum',key:'location',icon:'📍'},
+            {label:'Arka Plan Konum',key:'locationBg',icon:'🔄'},
+            {label:'Bildirim',key:'notification',icon:'🔔'},
+          ].map(p=>`
+            <div style="display:flex;align-items:center;gap:8px;font-size:13px">
+              <span>${p.icon}</span>
+              <span style="flex:1">${p.label}</span>
+              <span style="font-weight:600;color:${perms[p.key]?'var(--green)':'var(--red)'}">
+                ${perms[p.key]?'İzin Verildi':'İzin Verilmedi'}
+              </span>
+            </div>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div style="padding:0 20px 20px">
+      <p style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;font-weight:600">Acil Durum Kişileri</p>
+      ${contactsHtml}
+    </div>`;
+}
+
+// ── PROMO ──
+async function loadPromo() {
+  const snap=await db.collection('promo_codes').get();
+  allPromo=[];
+  snap.forEach(d=>allPromo.push({id:d.id,...d.data()}));
+  renderPromo(allPromo);
+}
+
+function renderPromo(list) {
+  const tbody=document.getElementById('promo-tbody');
+  if (!list.length) { tbody.innerHTML='<tr><td colspan="5" class="loading">Kod bulunamadı</td></tr>'; return; }
+  tbody.innerHTML=list.map(c=>{
+    const usedAt=c.usedAt?.toDate?.()?.toLocaleDateString('tr-TR')||'—';
+    const st=c.isUsed?'<span class="badge b-used">Kullanıldı</span>':'<span class="badge b-free">Beklemede</span>';
+    return `<tr>
+      <td class="code">${c.code||c.id}</td>
+      <td>${st}</td>
+      <td>${c.usedBy||'—'}</td>
+      <td>${c.isUsed?usedAt:'—'}</td>
+      <td><button class="btn b-red" onclick="delPromo('${c.id}')">Sil</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function filterPromo() {
+  const q=document.getElementById('promoSrch').value.toLowerCase();
+  renderPromo(allPromo.filter(c=>(c.code||c.id||'').toLowerCase().includes(q)));
+}
+
+async function delPromo(id) {
+  if (!confirm('Bu kodu silmek istediğine emin misin?')) return;
+  await db.collection('promo_codes').doc(id).delete();
+  toast('Kod silindi','err'); loadPromo();
+}
+
+function openPromo()  { document.getElementById('promoOverlay').classList.add('open'); }
+function closePromo() { document.getElementById('promoOverlay').classList.remove('open'); }
+
+async function genPromo() {
+  const count=parseInt(document.getElementById('promoCount').value)||1;
+  const prefix=document.getElementById('promoPrefix').value.trim().toUpperCase()||'SAFE';
+  const batch=db.batch();
+  for (let i=0;i<count;i++) {
+    const code=prefix+'-'+Math.random().toString(36).substring(2,8).toUpperCase();
+    batch.set(db.collection('promo_codes').doc(code),{code,isUsed:false,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+  }
+  await batch.commit();
+  toast(`${count} kod üretildi ✅`,'ok'); closePromo(); loadPromo();
+}
+
+// ── LOG KAYITLARI ──
+async function loadLogs() {
+  const snap = await db.collection('app_logs').orderBy('timestamp','desc').limit(200).get();
+  allLogs = [];
+  snap.forEach(d => allLogs.push({id:d.id,...d.data()}));
+  renderLogs(allLogs);
+}
+
+function renderLogs(list) {
+  const el = document.getElementById('log-list');
+  if (!list.length) { el.innerHTML='<div class="loading">Log bulunamadı</div>'; return; }
+  const icons = {app_open:'📱', sos_pressed:'🚨', safe_pressed:'✅'};
+  const labels = {app_open:'Uygulama Açıldı', sos_pressed:'SOS Butonu Basıldı', safe_pressed:'Güvendeyim Basıldı'};
+  el.innerHTML = list.map(l => {
+    const ts = l.timestamp?.toDate?.()?.toLocaleString('tr-TR') || '—';
+    return `<div class="log-row">
+      <div class="log-icon">${icons[l.action]||'📋'}</div>
+      <div class="log-action">${labels[l.action]||l.action}</div>
+      <div class="log-user">${l.userName||l.userId||'—'}</div>
+      <div class="log-time">${ts}</div>
+    </div>`;
+  }).join('');
+}
+
+function filterLogs() {
+  const action = document.getElementById('logFilter').value;
+  const q      = document.getElementById('logSrch').value.toLowerCase();
+  renderLogs(allLogs.filter(l =>
+    (!action || l.action === action) &&
+    (!q || (l.userName||l.userId||'').toLowerCase().includes(q))
+  ));
+}
+
+// ── BİLDİRİM GÖNDER ──
+async function sendNotification() {
+  const target = document.getElementById('notifTarget').value;
+  const title  = document.getElementById('notifTitle').value.trim();
+  const body   = document.getElementById('notifBody').value.trim();
+  const result = document.getElementById('notifResult');
+
+  if (!title || !body) { toast('Başlık ve mesaj gerekli','err'); return; }
+
+  result.textContent = 'Gönderiliyor…';
+  result.style.color = 'var(--muted)';
+
+  try {
+    const snap = await db.collection('users').get();
+    const batch = db.batch();
+    let count = 0;
+
+    snap.forEach(doc => {
+      const u = doc.data();
+      if (target === 'premium' && !u.isPremium) return;
+      if (target === 'free' && u.isPremium) return;
+      const token = u.fcmToken;
+      if (!token) return;
+
+      const ref = db.collection('notifications').doc();
+      batch.set(ref, {
+        token,
+        title,
+        body,
+        type: 'admin',
+        sentAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+      count++;
+    });
+
+    await batch.commit();
+    result.textContent = `✅ ${count} kullanıcıya bildirim gönderildi`;
+    result.style.color = 'var(--green)';
+    document.getElementById('notifTitle').value = '';
+    document.getElementById('notifBody').value  = '';
+    toast(`${count} bildirim gönderildi`,'ok');
+  } catch (e) {
+    result.textContent = '❌ Hata: ' + e.message;
+    result.style.color = 'var(--red)';
+  }
+}
+
+// ── STATS ──
+async function loadStats() {
+  const days=[],labels=[];
+  for (let i=6;i>=0;i--) {
+    const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-i);
+    days.push(d); labels.push(d.toLocaleDateString('tr-TR',{weekday:'short'}));
+  }
+
+  const [panicSnap,usersSnap]=await Promise.all([
+    db.collection('panic_events').get(),
+    db.collection('users').get()
+  ]);
+
+  const pC=Array(7).fill(0);
+  panicSnap.forEach(doc=>{
+    const ts=doc.data().timestamp;
+    if (!ts) return;
+    const t=ts?.toDate?ts.toDate():new Date(ts); const td=new Date(t); td.setHours(0,0,0,0);
+    for (let i=0;i<7;i++) if(td.getTime()===days[i].getTime()) pC[i]++;
+  });
+  const maxP=Math.max(...pC,1);
+  document.getElementById('chart-panic').innerHTML=pC.map((c,i)=>
+    `<div class="bar-wrap"><div class="bar" style="height:${(c/maxP)*100}px"></div><div class="bar-lbl">${labels[i]}</div></div>`
+  ).join('');
+
+  const uC=Array(7).fill(0);
+  usersSnap.forEach(doc=>{
+    const ts=doc.data().createdAt; if(!ts) return;
+    const t=ts?.toDate?ts.toDate():new Date(ts); const td=new Date(t); td.setHours(0,0,0,0);
+    for (let i=0;i<7;i++) if(td.getTime()===days[i].getTime()) uC[i]++;
+  });
+  const maxU=Math.max(...uC,1);
+  document.getElementById('chart-users').innerHTML=uC.map((c,i)=>
+    `<div class="bar-wrap"><div class="bar bl" style="height:${(c/maxU)*100}px"></div><div class="bar-lbl">${labels[i]}</div></div>`
+  ).join('');
+
+  let total=0,prem=0;
+  usersSnap.forEach(d=>{total++;if(d.data().isPremium)prem++;});
+  const free=total-prem, pct=total?Math.round((prem/total)*100):0;
+  document.getElementById('chart-donut').innerHTML=`
+    <svg class="donut" viewBox="0 0 42 42">
+      <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#30363d" stroke-width="5"/>
+      <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#d29922" stroke-width="5"
+        stroke-dasharray="${pct} ${100-pct}" stroke-dashoffset="25" stroke-linecap="round"/>
+    </svg>
+    <div class="legend">
+      <div class="legend-row"><div class="dot" style="background:var(--yellow)"></div>Premium: ${prem}</div>
+      <div class="legend-row"><div class="dot" style="background:var(--muted)"></div>Ücretsiz: ${free}</div>
+      <div class="legend-row" style="color:var(--muted);font-size:12px">Toplam: ${total}</div>
+    </div>`;
+}
+
+// ── DETAIL MODAL ──
+function closeDetail(e) {
+  if (e && e.target !== document.getElementById('detailOverlay')) return;
+  document.getElementById('detailOverlay').classList.remove('open');
+  document.getElementById('detailSrch').value='';
+}
+
+function filterDetail() {
+  const q=document.getElementById('detailSrch').value.toLowerCase();
+  document.querySelectorAll('#detailBody tbody tr').forEach(row=>{
+    row.style.display=row.textContent.toLowerCase().includes(q)?'':'none';
+  });
+}
+
+async function showDetail(type) {
+  const overlay=document.getElementById('detailOverlay');
+  const title=document.getElementById('detailTitle');
+  const body=document.getElementById('detailBody');
+  document.getElementById('detailSrch').value='';
+  overlay.classList.add('open');
+  body.innerHTML='<div class="loading">Yükleniyor…</div>';
+
+  if (type==='all-users') {
+    title.textContent='👥 Tüm Kullanıcılar';
+    const snap=await db.collection('users').get();
+    const arr=[]; snap.forEach(d=>arr.push(d.data()));
+    arr.sort((a,b)=>(b.createdAt?.toDate?.()??new Date(0))-(a.createdAt?.toDate?.()??new Date(0)));
+    body.innerHTML=`<table><thead><tr><th>İsim</th><th>E-Posta</th><th>Telefon</th><th>Kan Grubu</th><th>Plan</th><th>Durum</th></tr></thead>
+      <tbody>${arr.map(u=>`<tr>
+        <td>${u.name||u.isim||'—'}</td><td>${u.email||u['e-posta']||'—'}</td>
+        <td>${u.phone||u.telefon||'—'}</td><td style="color:var(--red);font-weight:600">${u.bloodType||'—'}</td>
+        <td><span class="badge ${u.isPremium?'b-prem':'b-free'}">${u.isPremium?'⭐ Premium':'Ücretsiz'}</span></td>
+        <td><span class="badge ${u.isOnline?'b-online':'b-offline'}">${u.isOnline?'● Çevrimiçi':'Çevrimdışı'}</span></td>
+      </tr>`).join('')}</tbody></table>`;
+
+  } else if (type==='premium-users') {
+    title.textContent='⭐ Premium Kullanıcılar';
+    const snap=await db.collection('users').where('isPremium','==',true).get();
+    const arr=[]; snap.forEach(d=>arr.push(d.data()));
+    if (!arr.length){body.innerHTML='<div class="detail-empty">Premium kullanıcı yok</div>';return;}
+    body.innerHTML=`<table><thead><tr><th>İsim</th><th>E-Posta</th><th>Telefon</th><th>Kan Grubu</th></tr></thead>
+      <tbody>${arr.map(u=>`<tr>
+        <td>${u.name||u.isim||'—'}</td><td>${u.email||u['e-posta']||'—'}</td>
+        <td>${u.phone||u.telefon||'—'}</td><td style="color:var(--red);font-weight:600">${u.bloodType||'—'}</td>
+      </tr>`).join('')}</tbody></table>`;
+
+  } else if (type==='online-users') {
+    title.textContent='🟢 Çevrimiçi Kullanıcılar';
+    const snap=await db.collection('users').where('isOnline','==',true).get();
+    const arr=[]; snap.forEach(d=>arr.push(d.data()));
+    if (!arr.length){body.innerHTML='<div class="detail-empty">Şu an çevrimiçi kullanıcı yok</div>';return;}
+    body.innerHTML=`<table><thead><tr><th>İsim</th><th>E-Posta</th><th>Plan</th><th>Son Görülme</th></tr></thead>
+      <tbody>${arr.map(u=>`<tr>
+        <td>${u.name||u.isim||'—'}</td><td>${u.email||u['e-posta']||'—'}</td>
+        <td><span class="badge ${u.isPremium?'b-prem':'b-free'}">${u.isPremium?'⭐ Premium':'Ücretsiz'}</span></td>
+        <td>${u.lastSeen?.toDate?.()?.toLocaleString('tr-TR')||'—'}</td>
+      </tr>`).join('')}</tbody></table>`;
+
+  } else if (type==='today-panic') {
+    title.textContent='🚨 Bugünkü Acil Çağrılar';
+    const today=new Date(); today.setHours(0,0,0,0);
+    const snap=await db.collection('panic_events').get();
+    const arr=[];
+    snap.forEach(doc=>{
+      const d=doc.data();
+      const ts=d.timestamp?.toDate?.();
+      if (ts&&ts>=today) arr.push(d);
+    });
+    if (!arr.length){body.innerHTML='<div class="detail-empty">Bugün acil çağrı yok</div>';return;}
+    body.innerHTML=`<table><thead><tr><th>Kullanıcı</th><th>Tip</th><th>Saat</th><th>Konum</th></tr></thead>
+      <tbody>${arr.map(d=>{
+        const t=d.timestamp?.toDate?.();
+        const tip=d.audioUrl?'🎙️ Ses':d.type==='safe'?'✅ Güvendeyim':'🚨 Acil';
+        return `<tr><td>${d.userName||'—'}</td><td>${tip}</td>
+          <td>${t?t.toLocaleTimeString('tr-TR'):'—'}</td>
+          <td>${d.latitude?`${d.latitude.toFixed(4)}, ${d.longitude?.toFixed(4)}`:'—'}</td></tr>`;
+      }).join('')}</tbody></table>`;
+
+  } else if (type==='promo-used') {
+    title.textContent='🎟️ Kullanılan Promo Kodlar';
+    const snap=await db.collection('promo_codes').where('isUsed','==',true).get();
+    const arr=[]; snap.forEach(d=>arr.push({id:d.id,...d.data()}));
+    if (!arr.length){body.innerHTML='<div class="detail-empty">Kullanılan kod yok</div>';return;}
+    body.innerHTML=`<table><thead><tr><th>Kod</th><th>Kullanan</th><th>Tarih</th></tr></thead>
+      <tbody>${arr.map(c=>`<tr>
+        <td class="code">${c.code||c.id}</td><td>${c.usedBy||'—'}</td>
+        <td>${c.usedAt?.toDate?.()?.toLocaleDateString('tr-TR')||'—'}</td>
+      </tr>`).join('')}</tbody></table>`;
+
+  } else if (['btn-panic','btn-safe','btn-audio'].includes(type)) {
+    const labels={'btn-panic':'🚨 Acil Yardım','btn-safe':'✅ Güvendeyim','btn-audio':'🎙️ Ses Kaydı'};
+    title.textContent=labels[type];
+    const snap=await db.collection('panic_events').get();
+    const arr=[];
+    snap.forEach(doc=>{
+      const d=doc.data();
+      if (type==='btn-panic'&&(d.audioUrl||d.type==='safe'||d.type==='guvendeyim')) return;
+      if (type==='btn-safe'&&!(d.type==='safe'||d.type==='guvendeyim')) return;
+      if (type==='btn-audio'&&!d.audioUrl) return;
+      arr.push(d);
+    });
+    arr.sort((a,b)=>(b.timestamp?.toDate?.()??new Date(0))-(a.timestamp?.toDate?.()??new Date(0)));
+    if (!arr.length){body.innerHTML='<div class="detail-empty">Kayıt bulunamadı</div>';return;}
+    body.innerHTML=`<table><thead><tr><th>Kullanıcı</th><th>Tarih & Saat</th><th>Konum</th></tr></thead>
+      <tbody>${arr.map(d=>{
+        const t=d.timestamp?.toDate?.();
+        return `<tr><td>${d.userName||'—'}</td>
+          <td>${t?t.toLocaleString('tr-TR'):'—'}</td>
+          <td>${d.latitude?`${d.latitude.toFixed(4)}, ${d.longitude?.toFixed(4)}`:'—'}</td></tr>`;
+      }).join('')}</tbody></table>`;
+  }
+}
+
+// ── TOAST ──
+function toast(msg,type='ok') {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast show '+type;
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+</script>
+</body>
+</html>

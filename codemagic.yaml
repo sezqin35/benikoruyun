@@ -1,0 +1,17 @@
+workflows:
+  android-workflow:
+    name: Android Debug Build
+    instance_type: mac_mini_m2
+    
+    environment:
+      flutter: stable
+      
+    scripts:
+      - name: Flutter packages
+        script: flutter pub get
+          
+      - name: Build APK
+        script: flutter build apk --debug
+          
+    artifacts:
+      - build/app/outputs/flutter-apk/*.apk

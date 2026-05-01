@@ -1,0 +1,5 @@
+-keep class com.safenow.app.** { *; }
+-keep class io.flutter.** { *; }
+-keep class io.flutter.embedding.** { *; }
+-keep class com.google.firebase.** { *; }
+-dontwarn com.google.firebase.**
